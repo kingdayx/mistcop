@@ -1,8 +1,13 @@
 const fs = require('fs')
+const ipfs = IpfsHttpClient('http://127.0.0.1:5001')
 const prompt = require('prompt-sync')()
 
 async function scrapeProduct() {
-  let nftsData = []
+  let files = fs.readdirSync(`${__dirname}/gallery`)
+  console.log('\nUploading images on IPFS...')
+  let upload = await ipfs.add(
+    globSource(`${__dirname}/gallery`, { recursive: true }),
+  )
   console.log('\nGetting files from gallery folder...')
   let files = fs.readdirSync(`${__dirname}/gallery`)
 
@@ -21,7 +26,6 @@ async function scrapeProduct() {
   console.log('\nCreating metadata...')
   for (let i = 0; i < files.length; i++) {
     const name = prompt('What is the name of the picture? ')
-    const imageUrl = prompt('What is the name of the image url? ')
     const rarity = prompt('What is the name of the what is the rarity? ')
     var img = fs.readFileSync(`${__dirname}/gallery/${files[i]}`, {
       encoding: 'base64',
@@ -29,7 +33,7 @@ async function scrapeProduct() {
     let metadata = JSON.stringify(
       {
         name: `${name}`,
-        imageUrl: `${imageUrl}`,
+        imageUrl: `https://ipfs.io/ipfs/${upload.cid.toString()}/${files[i]}`,
         attributes: [{ trait_type: 'Rarity', value: `${rarity}` }],
       },
       null,
